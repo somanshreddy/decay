@@ -1,5 +1,6 @@
 use crate::collector::Snapshot;
 use crate::db::Row;
+use crate::predict;
 use owo_colors::OwoColorize;
 
 const SPARK_CHARS: &[char] = &['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
@@ -149,16 +150,24 @@ pub fn print_summary(current: &Snapshot, history: &[Row]) {
     println!();
 
     // Mileage estimates
-    let snap_count = history.len();
-    if snap_count < 7 {
-        println!(
-            "  {}",
-            format!(
-                "🛞 Run `decay snapshot` daily — need {} more readings for mileage estimates",
-                7 - snap_count
-            )
-            .dimmed()
-        );
+    let predictions = predict::predict(history);
+    if predictions.is_empty() {
+        let snap_count = history.len();
+        let needed = if snap_count < 2 { 2 - snap_count } else { 0 };
+        if needed > 0 {
+            println!(
+                "  {}",
+                format!(
+                    "🛞 Run `decay snapshot` daily — need {} more readings for mileage estimates",
+                    needed
+                )
+                .dimmed()
+            );
+        }
+    } else {
+        for p in &predictions {
+            println!("  🛞 {}: {}", p.label, p.message);
+        }
     }
 
     println!();

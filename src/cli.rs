@@ -38,4 +38,5 @@ pub enum Command {
 #[derive(Clone, clap::ValueEnum)]
 pub enum ExportFormat {
     Json,
+    Csv,
 }

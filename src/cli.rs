@@ -21,6 +21,8 @@ pub enum Command {
         #[arg(short, long, default_value = "20")]
         count: usize,
     },
+    /// Predict when SSD/battery hit critical thresholds
+    Predict,
     /// Export all snapshots
     Export {
         /// Output format

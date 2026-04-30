@@ -3,6 +3,7 @@ mod collector;
 mod db;
 mod display;
 mod export;
+mod predict;
 
 use anyhow::Result;
 use clap::Parser;
@@ -24,6 +25,19 @@ fn main() -> Result<()> {
         Some(Command::History { count }) => {
             let rows = db::recent(&conn, count)?;
             display::history::print_history(&rows);
+        }
+        Some(Command::Predict) => {
+            let rows = db::all(&conn)?;
+            let predictions = predict::predict(&rows);
+            if predictions.is_empty() {
+                println!("  Need more snapshots for predictions. Run `decay snapshot` daily.");
+            } else {
+                println!();
+                for p in &predictions {
+                    println!("  🛞 {}: {}", p.label, p.message);
+                }
+                println!();
+            }
         }
         Some(Command::Export { format }) => match format {
             ExportFormat::Json => {

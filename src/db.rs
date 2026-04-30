@@ -73,7 +73,7 @@ pub fn insert(conn: &Connection, s: &Snapshot) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Row {
     pub ts: String,
     pub power_on_hours: Option<i64>,

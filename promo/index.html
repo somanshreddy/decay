@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280, height=720">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 1280px;
+      height: 720px;
+      background: #1a1b26;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 15px;
+      color: #c0caf5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .titlebar {
+      height: 36px;
+      background: #24283b;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 8px;
+      border-bottom: 1px solid #414868;
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #f7768e; }
+    .dot-yellow { background: #e0af68; }
+    .dot-green { background: #9ece6a; }
+
+    .titlebar-text {
+      flex: 1;
+      text-align: center;
+      font-size: 13px;
+      color: #565f89;
+    }
+
+    .terminal {
+      flex: 1;
+      padding: 16px 20px;
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    .prompt { color: #7aa2f7; }
+    .cmd { color: #c0caf5; }
+    .bold { font-weight: 700; color: #c0caf5; }
+    .dim { color: #565f89; }
+    .cyan { color: #7dcfff; }
+    .green { color: #9ece6a; }
+    .yellow { color: #e0af68; }
+
+    .line { opacity: 0; }
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 17px;
+      background: #c0caf5;
+      vertical-align: text-bottom;
+    }
+  </style>
+</head>
+<body>
+  <div
+    id="root"
+    data-composition-id="main"
+    data-start="0"
+    data-duration="8"
+    data-width="1280"
+    data-height="720"
+  >
+    <div class="titlebar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+      <div class="titlebar-text">decay — Terminal</div>
+      <div style="width: 52px"></div>
+    </div>
+
+    <div class="terminal" id="term">
+<div class="line" id="prompt1"><span class="prompt">❯ </span><span class="cmd" id="typed1"></span><span class="cursor" id="cursor1"></span></div>
+<div class="line" id="blank1"></div>
+<div class="line" id="header">  <span class="bold">🚗 decay — how many miles left?</span></div>
+<div class="line" id="blank2"></div>
+<div class="line" id="ssd-title">  <span class="bold">SSD</span>  <span class="dim">APPLE SSD AP0512Z</span></div>
+<div class="line" id="ssd-wear">    Wear: <span class="yellow">0%</span>  <span class="dim">▁▁▂▂▃▃▃▄▄▅</span>  Spare: 100%  Temp: 29°C</div>
+<div class="line" id="ssd-data">    Written: <span class="cyan">4.07 TB</span>  Read: <span class="cyan">3.05 TB</span>  Cycles: <span class="cyan">131</span></div>
+<div class="line" id="ssd-unsafe">    Unsafe shutdowns: <span class="yellow">5</span>  Integrity errors: <span class="green">0</span></div>
+<div class="line" id="blank3"></div>
+<div class="line" id="bat-title">  <span class="bold">Battery</span></div>
+<div class="line" id="bat-health">    Health: <span class="green">92%</span>  <span class="dim">▇▇▇▆▆▅▅▅▅▅</span>  Cycles: 287 / 1000  Condition: Normal</div>
+<div class="line" id="bat-design">    Design capacity: 8,693 mAh</div>
+<div class="line" id="blank4"></div>
+<div class="line" id="pred-ssd">  🛞 SSD: SSD has mass miles left — 100% wear in ~14 years at this pace</div>
+<div class="line" id="pred-bat">  🛞 Battery: Battery cruising — 80% health in ~3.2 years at current rate</div>
+<div class="line" id="blank5"></div>
+    </div>
+  </div>
+
+  <script>
+    window.__timelines = window.__timelines || {};
+
+    const tl = gsap.timeline({ paused: true });
+
+    // t=0: show prompt
+    tl.to("#prompt1", { opacity: 1, duration: 0.01 }, 0.3);
+
+    // t=0.5–1.0: type "decay"
+    const command = "decay";
+    const typed1 = document.getElementById("typed1");
+    const cursor1 = document.getElementById("cursor1");
+
+    command.split("").forEach((char, i) => {
+      tl.call(() => { typed1.textContent += char; }, null, 0.5 + i * 0.1);
+    });
+
+    // t=1.2: hide cursor (command entered)
+    tl.call(() => { cursor1.style.display = "none"; }, null, 1.2);
+
+    // t=1.5–3.5: reveal output lines with slight stagger
+    const lines = [
+      "blank1", "header", "blank2",
+      "ssd-title", "ssd-wear", "ssd-data", "ssd-unsafe", "blank3",
+      "bat-title", "bat-health", "bat-design", "blank4",
+      "pred-ssd", "pred-bat", "blank5"
+    ];
+
+    lines.forEach((id, i) => {
+      tl.to(`#${id}`, { opacity: 1, duration: 0.01 }, 1.5 + i * 0.12);
+    });
+
+    // Hold until duration (8s)
+
+    window.__timelines["main"] = tl;
+  </script>
+</body>
+</html>

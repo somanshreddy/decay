@@ -40,12 +40,13 @@ fn main() -> Result<()> {
                 println!();
             }
         }
-        Some(Command::Export { format }) => match format {
-            ExportFormat::Json => {
-                let rows = db::all(&conn)?;
-                export::export_json(&rows)?;
+        Some(Command::Export { format }) => {
+            let rows = db::all(&conn)?;
+            match format {
+                ExportFormat::Json => export::export_json(&rows)?,
+                ExportFormat::Csv => export::export_csv(&rows)?,
             }
-        },
+        }
         Some(Command::Install) => {
             scheduler::install()?;
         }

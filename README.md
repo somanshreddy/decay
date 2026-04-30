@@ -13,20 +13,39 @@ brew install smartmontools  # required for SSD data
 cargo install decay
 ```
 
-## Usage
+## Quick start
 
 ```bash
-# See current health + sparklines
+decay snapshot   # take your first reading
+decay            # see current health + sparklines
+decay install    # set up daily automatic snapshots
+```
+
+## Commands
+
+```bash
+# See current health + sparklines + mileage predictions
 decay
 
-# Take a snapshot (run daily)
+# Take a snapshot (or let `decay install` do it daily)
 decay snapshot
 
-# View history
+# Interactive TUI chart — arrow keys to switch tabs, q to quit
+decay chart
+
+# Predict when components hit critical thresholds
+decay predict
+
+# View snapshot history
 decay history
 
-# Export all data as JSON
+# Set up / remove daily automatic snapshots via macOS launchd
+decay install
+decay uninstall
+
+# Export all data
 decay export --format json
+decay export --format csv
 ```
 
 ## What it tracks
@@ -58,14 +77,17 @@ All numbers come from firmware — they persist across reboots and can't be fake
     Health: 100%  ▇▇▇▇▇▇▇▇  Cycles: 42 / 1000  Condition: Normal
     Design capacity: 8,579 mAh
 
-  🛞 Run `decay snapshot` daily — need more data for mileage estimates
+  🛞 SSD: SSD wear is flat — cruising with no visible degradation
+  🛞 Battery: Battery health is steady — no degradation trend yet
 ```
 
 ## How it works
 
 1. `decay snapshot` shells out to `smartctl` and `ioreg` to read firmware counters
 2. Stores each reading in a local SQLite database (`~/.local/share/decay/decay.db`)
-3. `decay` renders the latest snapshot with sparklines from your history
+3. `decay` renders the latest snapshot with sparklines and mileage predictions
+4. `decay chart` opens an interactive TUI with time-series line graphs
+5. `decay install` creates a macOS LaunchAgent for daily automatic snapshots
 
 No network calls. No telemetry. Everything stays on your machine.
 
@@ -77,11 +99,13 @@ No network calls. No telemetry. Everything stays on your machine.
 
 ## Roadmap
 
-- [ ] `decay chart` — interactive TUI with time-series charts
-- [ ] `decay predict` — project when SSD/battery hit critical thresholds
-- [ ] `decay install` — set up daily automatic snapshots via launchd
+- [x] `decay chart` — interactive TUI with time-series charts
+- [x] `decay predict` — project when SSD/battery hit critical thresholds
+- [x] `decay install` — set up daily automatic snapshots via launchd
+- [x] CSV export
 - [ ] Linux support
 - [ ] Homebrew formula
+- [ ] SMART change alerts
 
 ## License
 

@@ -6,6 +6,8 @@
 
 Take daily snapshots. Watch the trend lines. Know when the wheels are about to come off.
 
+![decay demo](promo/demo.gif)
+
 ## Install
 
 ```bash

@@ -4,6 +4,7 @@ mod db;
 mod display;
 mod export;
 mod predict;
+mod scheduler;
 
 use anyhow::Result;
 use clap::Parser;
@@ -45,6 +46,12 @@ fn main() -> Result<()> {
                 export::export_json(&rows)?;
             }
         },
+        Some(Command::Install) => {
+            scheduler::install()?;
+        }
+        Some(Command::Uninstall) => {
+            scheduler::uninstall()?;
+        }
         None => {
             let snapshot = collector::collect_all()?;
             let rows = db::recent(&conn, 30)?;

@@ -29,6 +29,10 @@ pub enum Command {
         #[arg(long, default_value = "json")]
         format: ExportFormat,
     },
+    /// Set up daily automatic snapshots via macOS launchd
+    Install,
+    /// Remove the daily snapshot schedule
+    Uninstall,
 }
 
 #[derive(Clone, clap::ValueEnum)]

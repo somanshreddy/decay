@@ -22,19 +22,23 @@ enum Tab {
     SsdWritten,
     BatteryHealth,
     BatteryCycles,
+    CpuTemp,
+    DiskIO,
 }
 
 impl Tab {
     fn all() -> &'static [Tab] {
-        &[Tab::SsdWear, Tab::SsdWritten, Tab::BatteryHealth, Tab::BatteryCycles]
+        &[Tab::SsdWear, Tab::SsdWritten, Tab::BatteryHealth, Tab::BatteryCycles, Tab::CpuTemp, Tab::DiskIO]
     }
 
     fn label(&self) -> &'static str {
         match self {
             Tab::SsdWear => "SSD Wear %",
-            Tab::SsdWritten => "SSD Data Written",
+            Tab::SsdWritten => "SSD Written",
             Tab::BatteryHealth => "Battery Health %",
             Tab::BatteryCycles => "Battery Cycles",
+            Tab::CpuTemp => "CPU Temp °C",
+            Tab::DiskIO => "Disk I/O MB/s",
         }
     }
 
@@ -72,6 +76,8 @@ fn extract_data(rows: &[Row], tab: Tab) -> ChartData {
                 }
                 Tab::BatteryHealth => r.max_capacity_pct? as f64,
                 Tab::BatteryCycles => r.cycle_count? as f64,
+                Tab::CpuTemp => r.cpu_temp_c? as f64,
+                Tab::DiskIO => r.disk_read_mbs? as f64,
             };
             Some((i as f64, y))
         })
@@ -97,6 +103,8 @@ fn extract_data(rows: &[Row], tab: Tab) -> ChartData {
         Tab::SsdWear | Tab::BatteryHealth => "%",
         Tab::SsdWritten => "TB",
         Tab::BatteryCycles => "",
+        Tab::CpuTemp => "°C",
+        Tab::DiskIO => "MB/s",
     };
 
     ChartData {
@@ -179,6 +187,8 @@ fn draw(f: &mut Frame, rows: &[Row], tab: Tab) {
         Tab::SsdWritten => Color::Cyan,
         Tab::BatteryHealth => Color::Green,
         Tab::BatteryCycles => Color::Magenta,
+        Tab::CpuTemp => Color::Red,
+        Tab::DiskIO => Color::LightBlue,
     };
 
     let dataset = Dataset::default()

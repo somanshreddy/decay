@@ -8,10 +8,10 @@ pub fn export_json(rows: &[Row]) -> Result<()> {
 }
 
 pub fn export_csv(rows: &[Row]) -> Result<()> {
-    println!("ts,power_on_hours,power_cycles,data_units_read,data_units_written,percentage_used,available_spare,unsafe_shutdowns,integrity_errors,ssd_temp_c,cycle_count,max_capacity_pct,design_capacity,condition");
+    println!("ts,power_on_hours,power_cycles,data_units_read,data_units_written,percentage_used,available_spare,unsafe_shutdowns,integrity_errors,ssd_temp_c,cycle_count,max_capacity_pct,design_capacity,condition,cpu_temp_c,disk_read_mbs,disk_write_mbs");
     for r in rows {
         println!(
-            "{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
             r.ts,
             opt(r.power_on_hours),
             opt(r.power_cycles),
@@ -26,6 +26,9 @@ pub fn export_csv(rows: &[Row]) -> Result<()> {
             opt(r.max_capacity_pct),
             opt(r.design_capacity),
             r.condition.as_deref().unwrap_or(""),
+            opt(r.cpu_temp_c),
+            opt(r.disk_read_mbs),
+            opt(r.disk_write_mbs),
         );
     }
     Ok(())

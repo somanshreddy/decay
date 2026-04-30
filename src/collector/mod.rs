@@ -1,5 +1,7 @@
 pub mod battery;
+pub mod benchmark;
 pub mod ssd;
+pub mod temperature;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -22,6 +24,11 @@ pub struct Snapshot {
     pub max_capacity_pct: Option<i64>,
     pub design_capacity: Option<i64>,
     pub condition: Option<String>,
+    // CPU temperature
+    pub cpu_temp_c: Option<i64>,
+    // Disk I/O benchmark (MB/s)
+    pub disk_read_mbs: Option<i64>,
+    pub disk_write_mbs: Option<i64>,
 }
 
 pub trait Collector {
@@ -29,8 +36,10 @@ pub trait Collector {
 }
 
 pub fn collect_all() -> Result<Snapshot> {
-    let ssd = ssd::SsdCollector.collect().unwrap_or_default();
-    let bat = battery::BatteryCollector.collect().unwrap_or_default();
+    let ssd = ssd::SsdCollector::new().collect().unwrap_or_default();
+    let bat = battery::collect_battery().unwrap_or_default();
+    let temp = temperature::collect_temperature().unwrap_or_default();
+    let bench = benchmark::collect_benchmark().unwrap_or_default();
 
     Ok(Snapshot {
         power_on_hours: ssd.power_on_hours,
@@ -47,5 +56,8 @@ pub fn collect_all() -> Result<Snapshot> {
         max_capacity_pct: bat.max_capacity_pct,
         design_capacity: bat.design_capacity,
         condition: bat.condition,
+        cpu_temp_c: temp.cpu_temp_c,
+        disk_read_mbs: bench.disk_read_mbs,
+        disk_write_mbs: bench.disk_write_mbs,
     })
 }

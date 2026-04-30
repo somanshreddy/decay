@@ -20,10 +20,19 @@ CREATE TABLE IF NOT EXISTS snapshots (
   cycle_count        INTEGER,
   max_capacity_pct   INTEGER,
   design_capacity    INTEGER,
-  condition          TEXT
+  condition          TEXT,
+  cpu_temp_c         INTEGER,
+  disk_read_mbs      INTEGER,
+  disk_write_mbs     INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_ts ON snapshots(ts);
 ";
+
+const MIGRATIONS: &[&str] = &[
+    "ALTER TABLE snapshots ADD COLUMN cpu_temp_c INTEGER",
+    "ALTER TABLE snapshots ADD COLUMN disk_read_mbs INTEGER",
+    "ALTER TABLE snapshots ADD COLUMN disk_write_mbs INTEGER",
+];
 
 fn db_path() -> Result<PathBuf> {
     let dir = dirs();
@@ -32,7 +41,9 @@ fn db_path() -> Result<PathBuf> {
 }
 
 fn dirs() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .unwrap_or_else(|_| ".".into());
     PathBuf::from(home)
         .join(".local")
         .join("share")
@@ -44,7 +55,14 @@ pub fn open() -> Result<Connection> {
     let conn = Connection::open(&path).context("failed to open database")?;
     conn.execute_batch(SCHEMA)
         .context("failed to initialize schema")?;
+    run_migrations(&conn);
     Ok(conn)
+}
+
+fn run_migrations(conn: &Connection) {
+    for sql in MIGRATIONS {
+        let _ = conn.execute_batch(sql);
+    }
 }
 
 pub fn insert(conn: &Connection, s: &Snapshot) -> Result<()> {
@@ -52,8 +70,9 @@ pub fn insert(conn: &Connection, s: &Snapshot) -> Result<()> {
         "INSERT INTO snapshots (
             power_on_hours, power_cycles, data_units_read, data_units_written,
             percentage_used, available_spare, unsafe_shutdowns, integrity_errors,
-            ssd_temp_c, cycle_count, max_capacity_pct, design_capacity, condition
-        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)",
+            ssd_temp_c, cycle_count, max_capacity_pct, design_capacity, condition,
+            cpu_temp_c, disk_read_mbs, disk_write_mbs
+        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",
         params![
             s.power_on_hours,
             s.power_cycles,
@@ -68,6 +87,9 @@ pub fn insert(conn: &Connection, s: &Snapshot) -> Result<()> {
             s.max_capacity_pct,
             s.design_capacity,
             s.condition,
+            s.cpu_temp_c,
+            s.disk_read_mbs,
+            s.disk_write_mbs,
         ],
     )?;
     Ok(())
@@ -89,13 +111,17 @@ pub struct Row {
     pub max_capacity_pct: Option<i64>,
     pub design_capacity: Option<i64>,
     pub condition: Option<String>,
+    pub cpu_temp_c: Option<i64>,
+    pub disk_read_mbs: Option<i64>,
+    pub disk_write_mbs: Option<i64>,
 }
 
 pub fn recent(conn: &Connection, limit: usize) -> Result<Vec<Row>> {
     let mut stmt = conn.prepare(
         "SELECT ts, power_on_hours, power_cycles, data_units_read, data_units_written,
                 percentage_used, available_spare, unsafe_shutdowns, integrity_errors,
-                ssd_temp_c, cycle_count, max_capacity_pct, design_capacity, condition
+                ssd_temp_c, cycle_count, max_capacity_pct, design_capacity, condition,
+                cpu_temp_c, disk_read_mbs, disk_write_mbs
          FROM snapshots ORDER BY ts DESC LIMIT ?1",
     )?;
     let rows = stmt
@@ -115,6 +141,9 @@ pub fn recent(conn: &Connection, limit: usize) -> Result<Vec<Row>> {
                 max_capacity_pct: row.get(11)?,
                 design_capacity: row.get(12)?,
                 condition: row.get(13)?,
+                cpu_temp_c: row.get(14)?,
+                disk_read_mbs: row.get(15)?,
+                disk_write_mbs: row.get(16)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;

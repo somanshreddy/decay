@@ -147,7 +147,43 @@ pub fn print_summary(current: &Snapshot, history: &[Row]) {
         println!("    Design capacity: {} mAh", commafy(design));
     }
 
-    println!();
+    // System health section
+    let has_temp = current.cpu_temp_c.is_some();
+    let has_bench = current.disk_read_mbs.is_some() || current.disk_write_mbs.is_some();
+    if has_temp || has_bench {
+        println!("  {}", "System".bold());
+        if let Some(temp) = current.cpu_temp_c {
+            let temp_spark = sparkline(
+                &history
+                    .iter()
+                    .filter_map(|r| r.cpu_temp_c)
+                    .collect::<Vec<_>>(),
+            );
+            let temp_color = if temp >= 90 {
+                format!("{}°C", temp).red().to_string()
+            } else if temp >= 70 {
+                format!("{}°C", temp).yellow().to_string()
+            } else {
+                format!("{}°C", temp).green().to_string()
+            };
+            println!("    CPU temp: {}  {}", temp_color, temp_spark.dimmed());
+        }
+        if let (Some(read), Some(write)) = (current.disk_read_mbs, current.disk_write_mbs) {
+            let read_spark = sparkline(
+                &history
+                    .iter()
+                    .filter_map(|r| r.disk_read_mbs)
+                    .collect::<Vec<_>>(),
+            );
+            println!(
+                "    Disk I/O: {} read  {} write  {}",
+                format!("{} MB/s", read).cyan(),
+                format!("{} MB/s", write).cyan(),
+                read_spark.dimmed(),
+            );
+        }
+        println!();
+    }
 
     // Mileage estimates
     let predictions = predict::predict(history);

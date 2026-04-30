@@ -23,6 +23,8 @@ pub enum Command {
     },
     /// Predict when SSD/battery hit critical thresholds
     Predict,
+    /// Interactive TUI chart of health trends
+    Chart,
     /// Export all snapshots
     Export {
         /// Output format

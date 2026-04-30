@@ -27,6 +27,10 @@ fn main() -> Result<()> {
             let rows = db::recent(&conn, count)?;
             display::history::print_history(&rows);
         }
+        Some(Command::Chart) => {
+            let rows = db::all(&conn)?;
+            display::chart::run(&rows)?;
+        }
         Some(Command::Predict) => {
             let rows = db::all(&conn)?;
             let predictions = predict::predict(&rows);

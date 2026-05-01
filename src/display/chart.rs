@@ -137,17 +137,17 @@ pub fn run(rows: &[Row]) -> Result<()> {
     loop {
         terminal.draw(|f| draw(f, &rows, tab))?;
 
-        if event::poll(std::time::Duration::from_millis(100))? {
-            if let Event::Key(key) = event::read()? {
-                if key.kind != KeyEventKind::Press {
-                    continue;
-                }
-                match key.code {
-                    KeyCode::Char('q') | KeyCode::Esc => break,
-                    KeyCode::Right | KeyCode::Tab | KeyCode::Char('l') => tab = tab.next(),
-                    KeyCode::Left | KeyCode::Char('h') => tab = tab.prev(),
-                    _ => {}
-                }
+        if event::poll(std::time::Duration::from_millis(100))?
+            && let Event::Key(key) = event::read()?
+        {
+            if key.kind != KeyEventKind::Press {
+                continue;
+            }
+            match key.code {
+                KeyCode::Char('q') | KeyCode::Esc => break,
+                KeyCode::Right | KeyCode::Tab | KeyCode::Char('l') => tab = tab.next(),
+                KeyCode::Left | KeyCode::Char('h') => tab = tab.prev(),
+                _ => {}
             }
         }
     }

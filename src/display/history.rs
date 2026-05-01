@@ -9,7 +9,7 @@ pub fn print_history(rows: &[Row]) {
 
     println!();
     println!(
-        "  {:<20} {:>6} {:>6} {:>10} {:>10} {:>5} {:>5}",
+        "  {:<20} {:>6} {:>6} {:>10} {:>10} {:>5} {:>5} {:>6} {:>8} {:>8}",
         "Timestamp".bold(),
         "Wear%".bold(),
         "Spare".bold(),
@@ -17,9 +17,12 @@ pub fn print_history(rows: &[Row]) {
         "Read".bold(),
         "Batt%".bold(),
         "Cyc".bold(),
+        "CPU°C".bold(),
+        "DiskR".bold(),
+        "DiskW".bold(),
     );
     println!(
-        "  {:<20} {:>6} {:>6} {:>10} {:>10} {:>5} {:>5}",
+        "  {:<20} {:>6} {:>6} {:>10} {:>10} {:>5} {:>5} {:>6} {:>8} {:>8}",
         "─".repeat(19),
         "─".repeat(5),
         "─".repeat(5),
@@ -27,6 +30,9 @@ pub fn print_history(rows: &[Row]) {
         "─".repeat(9),
         "─".repeat(5),
         "─".repeat(5),
+        "─".repeat(5),
+        "─".repeat(7),
+        "─".repeat(7),
     );
 
     for row in rows {
@@ -41,11 +47,11 @@ pub fn print_history(rows: &[Row]) {
             .unwrap_or_else(|| "—".into());
         let written = row
             .data_units_written
-            .map(|v| format_short_units(v))
+            .map(format_short_units)
             .unwrap_or_else(|| "—".into());
         let read = row
             .data_units_read
-            .map(|v| format_short_units(v))
+            .map(format_short_units)
             .unwrap_or_else(|| "—".into());
         let batt = row
             .max_capacity_pct
@@ -55,9 +61,21 @@ pub fn print_history(rows: &[Row]) {
             .cycle_count
             .map(|v| v.to_string())
             .unwrap_or_else(|| "—".into());
+        let cpu = row
+            .cpu_temp_c
+            .map(|v| format!("{}°", v))
+            .unwrap_or_else(|| "—".into());
+        let disk_r = row
+            .disk_read_mbs
+            .map(|v| format!("{} MB", v))
+            .unwrap_or_else(|| "—".into());
+        let disk_w = row
+            .disk_write_mbs
+            .map(|v| format!("{} MB", v))
+            .unwrap_or_else(|| "—".into());
 
         println!(
-            "  {:<20} {:>6} {:>6} {:>10} {:>10} {:>5} {:>5}",
+            "  {:<20} {:>6} {:>6} {:>10} {:>10} {:>5} {:>5} {:>6} {:>8} {:>8}",
             ts.dimmed(),
             wear,
             spare,
@@ -65,6 +83,9 @@ pub fn print_history(rows: &[Row]) {
             read,
             batt,
             cyc,
+            cpu,
+            disk_r,
+            disk_w,
         );
     }
     println!();

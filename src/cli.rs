@@ -3,8 +3,8 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(
     name = "decay",
-    about = "🚗 Are you riding your Mac until the wheels fall off?",
-    long_about = "Track SSD wear & battery decay over time.\nRun `decay snapshot` daily, then `decay` to see how your Mac is holding up."
+    about = "🚗 Are you riding your machine until the wheels fall off?",
+    long_about = "Track SSD wear & battery decay over time.\nRun `decay snapshot` daily, then `decay` to see how your machine is holding up."
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -31,7 +31,7 @@ pub enum Command {
         #[arg(long, default_value = "json")]
         format: ExportFormat,
     },
-    /// Set up daily automatic snapshots via macOS launchd
+    /// Set up daily automatic snapshots (macOS launchd)
     Install,
     /// Remove the daily snapshot schedule
     Uninstall,

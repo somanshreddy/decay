@@ -46,10 +46,10 @@ fn read_ioreg_i64(key: &str) -> Option<i64> {
             continue;
         }
         let pattern = format!("\"{}\"", key);
-        if trimmed.starts_with(&pattern) {
-            if let Some(val) = trimmed.split('=').nth(1) {
-                return val.trim().parse().ok();
-            }
+        if trimmed.starts_with(&pattern)
+            && let Some(val) = trimmed.split('=').nth(1)
+        {
+            return val.trim().parse().ok();
         }
     }
     None

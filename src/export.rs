@@ -25,7 +25,7 @@ pub fn export_csv(rows: &[Row]) -> Result<()> {
             opt(r.cycle_count),
             opt(r.max_capacity_pct),
             opt(r.design_capacity),
-            r.condition.as_deref().unwrap_or(""),
+            csv_quote(r.condition.as_deref().unwrap_or("")),
             opt(r.cpu_temp_c),
             opt(r.disk_read_mbs),
             opt(r.disk_write_mbs),
@@ -36,4 +36,12 @@ pub fn export_csv(rows: &[Row]) -> Result<()> {
 
 fn opt(v: Option<i64>) -> String {
     v.map(|n| n.to_string()).unwrap_or_default()
+}
+
+fn csv_quote(s: &str) -> String {
+    if s.contains(',') || s.contains('"') || s.contains('\n') {
+        format!("\"{}\"", s.replace('"', "\"\""))
+    } else {
+        s.to_string()
+    }
 }

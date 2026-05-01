@@ -189,7 +189,7 @@ pub fn print_summary(current: &Snapshot, history: &[Row]) {
     let predictions = predict::predict(history);
     if predictions.is_empty() {
         let snap_count = history.len();
-        let needed = if snap_count < 2 { 2 - snap_count } else { 0 };
+        let needed = 2_usize.saturating_sub(snap_count);
         if needed > 0 {
             println!(
                 "  {}",

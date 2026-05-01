@@ -2,10 +2,10 @@
 name = "decay"
 version = "0.1.0"
 edition = "2024"
-description = "Are you riding your Mac until the wheels fall off? Track SSD wear & battery decay over time."
+description = "Are you riding your machine until the wheels fall off? Track SSD wear & battery decay over time."
 license = "MIT"
 repository = "https://github.com/somanshreddy/decay"
-keywords = ["macos", "ssd", "battery", "health", "smart"]
+keywords = ["ssd", "battery", "health", "smart", "cli"]
 categories = ["command-line-utilities"]
 
 [dependencies]

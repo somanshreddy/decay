@@ -35,12 +35,11 @@ fn collect_macos() -> Option<i64> {
         if indent > 12 {
             continue;
         }
-        if trimmed.starts_with("\"Temperature\"") {
-            if let Some(val) = trimmed.split('=').nth(1) {
-                // Temperature is in deciKelvin (e.g. 3042 = 304.2K = 31°C)
-                let raw: i64 = val.trim().parse().ok()?;
-                return Some((raw / 10) - 273);
-            }
+        if trimmed.starts_with("\"Temperature\"")
+            && let Some(val) = trimmed.split('=').nth(1)
+        {
+            let raw: i64 = val.trim().parse().ok()?;
+            return Some((raw / 10) - 273);
         }
     }
     None

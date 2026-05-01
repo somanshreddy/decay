@@ -52,7 +52,16 @@ fn dirs() -> PathBuf {
 
 pub fn open() -> Result<Connection> {
     let path = db_path()?;
+    let exists = path.exists();
     let conn = Connection::open(&path).context("failed to open database")?;
+    if !exists {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let perms = std::fs::Permissions::from_mode(0o600);
+            std::fs::set_permissions(&path, perms).ok();
+        }
+    }
     conn.execute_batch(SCHEMA)
         .context("failed to initialize schema")?;
     run_migrations(&conn);

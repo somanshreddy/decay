@@ -57,8 +57,9 @@ pub fn install() -> Result<()> {
     }
     std::fs::write(&path, plist).context("failed to write launchd plist")?;
 
+    let path_str = path.to_str().context("plist path is not valid UTF-8")?;
     let status = std::process::Command::new("launchctl")
-        .args(["load", path.to_str().unwrap()])
+        .args(["load", path_str])
         .status()
         .context("failed to run launchctl load")?;
 
@@ -82,9 +83,11 @@ pub fn uninstall() -> Result<()> {
         return Ok(());
     }
 
-    let _ = std::process::Command::new("launchctl")
-        .args(["unload", path.to_str().unwrap()])
-        .status();
+    if let Some(path_str) = path.to_str() {
+        let _ = std::process::Command::new("launchctl")
+            .args(["unload", path_str])
+            .status();
+    }
 
     std::fs::remove_file(&path).context("failed to remove plist")?;
     println!("  ✅ Uninstalled. Daily snapshots stopped.");

@@ -86,11 +86,16 @@ pub fn print_summary(current: &Snapshot, history: &[Row]) {
 
     if let (Some(written), Some(read)) = (current.data_units_written, current.data_units_read) {
         let cycles = current.power_cycles.unwrap_or(0);
+        let on_hours = current
+            .power_on_hours
+            .map(|h| format!("{}h", commafy(h)))
+            .unwrap_or_else(|| "?".into());
         println!(
-            "    Written: {}  Read: {}  Cycles: {}",
+            "    Written: {}  Read: {}  Cycles: {}  On: {}",
             format_data_units(written).cyan(),
             format_data_units(read).cyan(),
             commafy(cycles).cyan(),
+            on_hours.cyan(),
         );
     }
 
@@ -135,7 +140,7 @@ pub fn print_summary(current: &Snapshot, history: &[Row]) {
             format!("{}%", health).red().to_string()
         };
         println!(
-            "    Health: {:<5} {}  Cycles: {} / 1000  Condition: {}",
+            "    Health: {:<5} {}  Cycles: {}  Condition: {}",
             health_color,
             health_spark.dimmed(),
             commafy(cycles),

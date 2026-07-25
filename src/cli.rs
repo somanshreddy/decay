@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(
     name = "decay",
+    version,
     about = "🚗 Are you riding your machine until the wheels fall off?",
     long_about = "Track SSD wear & battery decay over time.\nRun `decay snapshot` daily, then `decay` to see how your machine is holding up."
 )]
@@ -35,6 +36,12 @@ pub enum Command {
     Install,
     /// Remove the daily snapshot schedule
     Uninstall,
+    /// Update decay to the latest release
+    Update {
+        /// Only report whether an update is available
+        #[arg(long)]
+        check: bool,
+    },
 }
 
 #[derive(Clone, clap::ValueEnum)]

@@ -5,6 +5,7 @@ mod display;
 mod export;
 mod predict;
 mod scheduler;
+mod update;
 
 use anyhow::Result;
 use clap::Parser;
@@ -12,6 +13,14 @@ use cli::{Cli, Command, ExportFormat};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
+
+    // `decay update` drives the updater itself; every other command gets the
+    // background check that installs new releases for the next run.
+    if let Some(Command::Update { check }) = cli.command {
+        return update::run_command(check);
+    }
+    let update_check = update::spawn_check();
+
     let conn = db::open()?;
 
     match cli.command {
@@ -57,12 +66,15 @@ fn main() -> Result<()> {
         Some(Command::Uninstall) => {
             scheduler::uninstall()?;
         }
+        Some(Command::Update { .. }) => unreachable!("handled above"),
         None => {
             let snapshot = collector::collect_all()?;
             let rows = db::recent(&conn, 30)?;
             display::summary::print_summary(&snapshot, &rows);
         }
     }
+
+    update::finish(update_check);
 
     Ok(())
 }

@@ -1,6 +1,44 @@
 use super::{Collector, Snapshot};
 use anyhow::{Context, Result};
+use std::path::PathBuf;
 use std::process::Command;
+
+/// Where smartmontools installs itself when it isn't on `PATH`. Scheduled runs
+/// (launchd, cron, systemd) inherit a bare `PATH` that has none of these —
+/// Homebrew's `/opt/homebrew/bin` in particular is why daily snapshots on a
+/// Mac would record everything except the SSD.
+const SMARTCTL_DIRS: &[&str] = &[
+    "/opt/homebrew/bin",                        // Homebrew, Apple Silicon
+    "/usr/local/bin",                           // Homebrew, Intel Mac
+    "/opt/local/bin",                           // MacPorts
+    "/usr/sbin",                                // Debian/Ubuntu, Fedora/RHEL
+    "/sbin",                                    // some Linux distros
+    "/usr/bin",                                 // Arch, others
+    "C:\\Program Files\\smartmontools\\bin",    // Windows installer
+    "C:\\Program Files (x86)\\smartmontools\\bin",
+];
+
+/// Absolute path to `smartctl`, preferring `PATH` and falling back to the
+/// standard install locations. Returns the bare name if nothing is found, so
+/// the failure surfaces as smartmontools' own "not installed" error.
+fn smartctl_bin() -> PathBuf {
+    let name = if cfg!(windows) {
+        "smartctl.exe"
+    } else {
+        "smartctl"
+    };
+
+    let path_dirs = std::env::var_os("PATH")
+        .map(|p| std::env::split_paths(&p).collect::<Vec<_>>())
+        .unwrap_or_default();
+
+    path_dirs
+        .into_iter()
+        .chain(SMARTCTL_DIRS.iter().map(PathBuf::from))
+        .map(|dir| dir.join(name))
+        .find(|candidate| candidate.is_file())
+        .unwrap_or_else(|| PathBuf::from(name))
+}
 
 pub struct SsdCollector {
     device: String,
@@ -55,7 +93,7 @@ impl Collector for SsdCollector {
         args.extend(self.extra_args.clone());
         args.push(self.device.clone());
 
-        let output = Command::new("smartctl")
+        let output = Command::new(smartctl_bin())
             .args(&args)
             .output()
             .context("failed to run smartctl — is smartmontools installed?")?;

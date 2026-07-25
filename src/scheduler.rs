@@ -19,6 +19,13 @@ fn decay_bin() -> Result<String> {
         .context("binary path is not valid UTF-8")
 }
 
+/// launchd starts jobs with a bare PATH, so `smartctl` (Homebrew) and `cargo`
+/// (the auto-updater) would both be invisible to scheduled snapshots.
+fn job_path() -> String {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+    format!("{home}/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin")
+}
+
 pub fn install() -> Result<()> {
     let bin = decay_bin()?;
     let path = plist_path();
@@ -35,6 +42,11 @@ pub fn install() -> Result<()> {
         <string>{bin}</string>
         <string>snapshot</string>
     </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>{job_path}</string>
+    </dict>
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
@@ -50,6 +62,7 @@ pub fn install() -> Result<()> {
 </plist>"#,
         label = LABEL,
         bin = bin,
+        job_path = job_path(),
     );
 
     if let Some(parent) = path.parent() {

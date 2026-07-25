@@ -15,20 +15,22 @@ Works on **macOS**, **Linux**, and **Windows**.
 ```bash
 # macOS
 brew install smartmontools
-cargo install decay
+cargo install --git https://github.com/somanshreddy/decay
 
 # Linux (Debian/Ubuntu)
 sudo apt install smartmontools
-cargo install decay
+cargo install --git https://github.com/somanshreddy/decay
 
 # Linux (Fedora/RHEL)
 sudo dnf install smartmontools
-cargo install decay
+cargo install --git https://github.com/somanshreddy/decay
 
 # Windows (with Chocolatey)
 choco install smartmontools
-cargo install decay
+cargo install --git https://github.com/somanshreddy/decay
 ```
+
+Once installed, decay keeps itself up to date — see [Updating](#updating).
 
 ## Quick start
 
@@ -63,7 +65,45 @@ decay uninstall
 # Export all data
 decay export --format json
 decay export --format csv
+
+# Version and updates
+decay --version
+decay update           # update now
+decay update --check   # just see if a new release exists
 ```
+
+## Updating
+
+decay updates itself the same way `claude` does: every run checks the repo for a
+newer release tag in the background, and when it finds one it installs it
+without blocking whatever you were doing. The next command you run is the new
+version.
+
+```
+  ⬆️  Updating decay 0.1.0 → 0.2.0 in the background. The next run uses the new version.
+```
+
+Details:
+
+- The check is a `git ls-remote` against this repo (~0.5s) on a background
+  thread, capped at 5 seconds. If you're offline it stays silent.
+- The install is `cargo install --git … --tag … --force`, detached, logged to
+  `~/.local/share/decay/update.log`.
+- A failed install won't retry more than once every 6 hours.
+- Only the cargo-installed binary auto-updates. A local `cargo run` /
+  `target/debug` build never overwrites itself.
+- The daily launchd job updates too — `decay install` gives it a PATH that
+  includes `~/.cargo/bin` (and `/opt/homebrew/bin`, so scheduled snapshots find
+  `smartctl`). Re-run `decay install` to pick that up on an existing schedule.
+
+To turn it off, set `DECAY_NO_UPDATE=1`:
+
+```bash
+export DECAY_NO_UPDATE=1   # in your shell profile
+```
+
+Releases are semver tags (`v0.2.0`) on this repo; `decay --version` tells you
+what you're running.
 
 ## What it tracks
 
@@ -88,7 +128,7 @@ All numbers come from firmware or OS sensors — they persist across reboots and
 ## Example output
 
 ```
-  🚗 decay — how many miles left?
+  🚗 decay — how many miles left?  v0.1.0
 
   SSD  APPLE SSD AP0512Z
     Wear: 0%  ▁▁▁▁▁▁▁▁  Spare: 100%  Temp: 28°C
@@ -115,12 +155,15 @@ All numbers come from firmware or OS sensors — they persist across reboots and
 4. `decay chart` opens an interactive TUI with 6 time-series tabs
 5. `decay install` creates a macOS LaunchAgent for daily automatic snapshots
 
-No network calls. No telemetry. Everything stays on your machine.
+No telemetry. Every reading stays on your machine — the only network call decay
+ever makes is the update check against its own GitHub repo, which sends nothing
+but the request itself and can be disabled with `DECAY_NO_UPDATE=1`.
 
 ## Requirements
 
 - [smartmontools](https://www.smartmontools.org/) (for SSD data)
 - Rust toolchain (to build from source)
+- `git` (for install and for the update check)
 
 | Platform | SSD | Battery | CPU Temp | Disk I/O |
 |----------|-----|---------|----------|----------|
@@ -137,10 +180,25 @@ No network calls. No telemetry. Everything stays on your machine.
 - [x] Cross-platform support (macOS, Linux, Windows)
 - [x] CPU temperature tracking
 - [x] Disk I/O benchmark per snapshot
+- [x] Self-updating releases (`decay update`)
 - [ ] Homebrew formula
 - [ ] crates.io publish
 - [ ] GitHub Actions CI
 - [ ] SMART change alerts
+
+## Releasing
+
+`scripts/release.sh` bumps the version, runs the tests, and pushes the commit
+and tag. Pushing the tag is what ships the release — installed copies find it on
+their next run.
+
+```bash
+./scripts/release.sh 0.2.0            # bump, test, commit, tag v0.2.0, push
+./scripts/release.sh 0.2.0 --dry-run  # everything except commit/tag/push
+```
+
+Passing the version already in `Cargo.toml` tags it as-is, which is how the
+first release gets cut.
 
 ## License
 

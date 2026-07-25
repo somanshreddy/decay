@@ -51,8 +51,9 @@ fn commafy(n: i64) -> String {
 pub fn print_summary(current: &Snapshot, history: &[Row]) {
     println!();
     println!(
-        "  {}",
-        "🚗 decay — how many miles left?".bold()
+        "  {}  {}",
+        "🚗 decay — how many miles left?".bold(),
+        format!("v{}", crate::update::VERSION).dimmed()
     );
     println!();
 

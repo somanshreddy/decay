@@ -1,6 +1,6 @@
 [package]
 name = "decay"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "Are you riding your machine until the wheels fall off? Track SSD wear & battery decay over time."
 license = "MIT"
